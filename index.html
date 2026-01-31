@@ -1,0 +1,3024 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Acoustic Anomaly Detection - AI Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary: #8b5cf6;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --bg-main: #0f172a;
+        --bg-card: #1e293b;
+        --bg-hover: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --border: #334155;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+      }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg-main);
+        color: var(--text-primary);
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 280px;
+        background: var(--bg-card);
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        z-index: 1000;
+      }
+
+      .sidebar-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+      }
+
+      .logo-text {
+        font-size: 20px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .sidebar-menu {
+        padding: 20px 0;
+      }
+
+      .menu-section {
+        margin-bottom: 32px;
+      }
+
+      .menu-label {
+        padding: 0 24px 12px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 24px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+      }
+
+      .menu-item:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+        border-left-color: var(--primary);
+      }
+
+      .menu-item.active {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+        border-left-color: var(--primary);
+      }
+
+      .menu-item i {
+        width: 24px;
+        margin-right: 12px;
+        font-size: 18px;
+      }
+
+      /* Main Content */
+      .main-content {
+        margin-left: 280px;
+        flex: 1;
+        min-height: 100vh;
+      }
+
+      /* Top Header */
+      .top-header {
+        background: var(--bg-card);
+        padding: 20px 32px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+
+      .search-box {
+        position: relative;
+        width: 400px;
+      }
+
+      .search-box input {
+        width: 100%;
+        padding: 12px 16px 12px 44px;
+        background: var(--bg-main);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 14px;
+      }
+
+      .search-box input:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .header-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .header-icon:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: var(--danger);
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+
+      .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 16px;
+        background: var(--bg-main);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .user-profile:hover {
+        background: var(--bg-hover);
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+      }
+
+      /* Content Area */
+      .content-wrapper {
+        padding: 32px;
+      }
+
+      .page-header {
+        margin-bottom: 32px;
+      }
+
+      .breadcrumb {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+
+      .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      /* Stats Grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+      }
+
+      .stat-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+      }
+
+      .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+      }
+
+      .stat-icon.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+      .stat-icon.success { background: linear-gradient(135deg, var(--success), #059669); }
+      .stat-icon.danger { background: linear-gradient(135deg, var(--danger), #dc2626); }
+      .stat-icon.warning { background: linear-gradient(135deg, var(--warning), #d97706); }
+
+      .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        color: var(--text-secondary);
+        font-size: 14px;
+      }
+
+      /* Main Grid */
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      @media (max-width: 1400px) {
+        .main-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Card */
+      .card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+        font-size: 14px;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        background: var(--bg-main);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+
+      .upload-area {
+        border: 2px dashed var(--border);
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: var(--bg-main);
+      }
+
+      .upload-area:hover {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+      }
+
+      .upload-icon {
+        font-size: 48px;
+        color: var(--primary);
+        margin-bottom: 16px;
+      }
+
+      .btn {
+        padding: 14px 24px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .btn-full {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .recording-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(245, 158, 11, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .record-btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .record-btn.record {
+        background: linear-gradient(135deg, var(--danger), #dc2626);
+        color: white;
+      }
+
+      .record-btn.recording {
+        background: linear-gradient(135deg, var(--warning), #d97706);
+        color: white;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+      }
+
+      .record-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: white;
+        animation: blink 1s ease-in-out infinite;
+      }
+
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+      }
+
+      /* Spectrogram */
+      .spectrogram-container {
+        background: var(--bg-main);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border);
+      }
+
+      .spectrogram-canvas {
+        width: 100%;
+        height: 200px;
+        border-radius: 8px;
+        background: #0f172a;
+      }
+
+      /* Gauge Chart */
+      .gauge-container {
+        text-align: center;
+        padding: 30px 0;
+      }
+
+      .gauge-wrapper {
+        position: relative;
+        width: 320px;
+        height: 160px;
+        margin: 0 auto 20px;
+      }
+
+      .gauge-arc {
+        width: 100%;
+        height: 100%;
+        border-radius: 320px 320px 0 0;
+        border: 30px solid var(--bg-main);
+        border-bottom: none;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .gauge-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 0%;
+        border-radius: 320px 320px 0 0;
+        transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(to top, var(--success) 0%, var(--warning) 50%, var(--danger) 100%);
+      }
+
+      .gauge-needle {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform-origin: bottom center;
+        transform: translateX(-50%) rotate(-90deg);
+        width: 6px;
+        height: 140px;
+        background: var(--text-primary);
+        border-radius: 3px;
+        transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 10;
+      }
+
+      .gauge-center {
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 36px;
+        background: var(--bg-card);
+        border-radius: 50%;
+        z-index: 11;
+        border: 3px solid var(--text-primary);
+      }
+
+      .gauge-value {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 42px;
+        font-weight: 800;
+        color: var(--text-primary);
+        z-index: 5;
+      }
+
+      .gauge-label {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      /* Status Badge */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 28px;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 24px 0;
+      }
+
+      .status-normal {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--success);
+        border: 2px solid var(--success);
+      }
+
+      .status-anomaly {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--danger);
+        border: 2px solid var(--danger);
+        animation: shake 0.5s ease;
+      }
+
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+
+      .status-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        box-shadow: 0 0 12px currentColor;
+      }
+
+      /* Info Grid */
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin: 24px 0;
+      }
+
+      .info-item {
+        padding: 16px;
+        background: var(--bg-main);
+        border-radius: 10px;
+        border-left: 4px solid var(--primary);
+      }
+
+      .info-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+      }
+
+      .info-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      /* Progress Bar */
+      .progress-container {
+        margin: 24px 0;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 40px;
+        background: var(--bg-main);
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid var(--border);
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--success) 0%, var(--warning) 50%, var(--danger) 100%);
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 16px;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .progress-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* Explanation Box */
+      .explanation-box {
+        margin-top: 24px;
+        padding: 24px;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 12px;
+        border-left: 5px solid var(--primary);
+      }
+
+      .explanation-box h4 {
+        color: var(--primary);
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+
+      .explanation-box p {
+        color: var(--text-primary);
+        line-height: 1.7;
+        font-size: 14px;
+      }
+
+      /* Activity Log */
+      .activity-log {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .log-item {
+        padding: 16px;
+        margin-bottom: 12px;
+        background: var(--bg-main);
+        border-radius: 10px;
+        border-left: 4px solid var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .log-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: white;
+        flex-shrink: 0;
+      }
+
+      .log-icon.success { background: var(--success); }
+      .log-icon.danger { background: var(--danger); }
+      .log-icon.info { background: var(--info); }
+
+      .log-content {
+        flex: 1;
+      }
+
+      .log-time {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+      }
+
+      .log-message {
+        font-size: 14px;
+        color: var(--text-primary);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .page-view {
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .file-info {
+        margin-top: 12px;
+        padding: 12px;
+        background: var(--bg-main);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">🎵</div>
+        <div class="logo-text">Anomaly AI</div>
+      </div>
+      <div class="sidebar-menu">
+        <div class="menu-section">
+          <div class="menu-label">Main</div>
+          <div class="menu-item active" data-page="dashboard">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+          </div>
+          <div class="menu-item" data-page="audioAnalysis">
+            <i class="fas fa-microphone"></i>
+            <span>Audio Analysis</span>
+          </div>
+          <div class="menu-item" data-page="reports">
+            <i class="fas fa-chart-line"></i>
+            <span>Reports</span>
+          </div>
+        </div>
+        <div class="menu-section">
+          <div class="menu-label">Analytics</div>
+          <div class="menu-item" data-page="machineData">
+            <i class="fas fa-database"></i>
+            <span>Machine Data</span>
+          </div>
+          <div class="menu-item" data-page="alerts">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Top Header -->
+      <div class="top-header">
+        <div class="header-left">
+          <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" placeholder="Search machines, files...">
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-icon">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge">3</span>
+          </div>
+          <div class="user-profile">
+            <div class="user-avatar">AD</div>
+            <div>
+              <div style="font-weight: 600; font-size: 14px;">Admin</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">Administrator</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Wrapper -->
+      <div class="content-wrapper">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="breadcrumb" id="breadcrumb">Anomaly AI / Dashboard</div>
+          <h1 class="page-title" id="pageTitle">Acoustic Anomaly Detection</h1>
+        </div>
+
+        <!-- Page Views -->
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="page-view">
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <div>
+                <div class="stat-value" id="totalTests">0</div>
+                <div class="stat-label">Total Tests</div>
+              </div>
+              <div class="stat-icon primary">
+                <i class="fas fa-microphone"></i>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div>
+                <div class="stat-value" id="normalCount">0</div>
+                <div class="stat-label">Normal Operations</div>
+              </div>
+              <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div>
+                <div class="stat-value" id="anomalyCount">0</div>
+                <div class="stat-label">Anomalies Detected</div>
+              </div>
+              <div class="stat-icon danger">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div>
+                <div class="stat-value" id="successRate">0%</div>
+                <div class="stat-label">Success Rate</div>
+              </div>
+              <div class="stat-icon warning">
+                <i class="fas fa-chart-pie"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+          <!-- Upload Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Upload & Analyze</h2>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Machine Type</label>
+              <select class="form-control" id="machine">
+                <option value="fan">Fan</option>
+                <option value="pump">Pump</option>
+                <option value="slider">Slider</option>
+                <option value="ToyCar">ToyCar</option>
+                <option value="ToyConveyor">ToyConveyor</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Audio File</label>
+              <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div style="font-weight: 600; margin-bottom: 5px; color: var(--text-primary);">Drop audio file here or click to browse</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Supports .wav files only</div>
+                <input type="file" id="audio" accept=".wav,audio/wav" style="display: none;">
+              </div>
+              <div id="fileInfo" class="file-info"></div>
+            </div>
+
+            <div class="recording-section">
+              <label class="form-label" style="margin-bottom: 15px;">🎤 Real-Time Recording</label>
+              <button class="record-btn record" id="recordBtn">
+                <span class="record-indicator" id="recordIndicator" style="display: none;"></span>
+                <span id="recordText">Start Recording</span>
+              </button>
+              <div id="timer" style="text-align: center; margin-top: 10px; font-weight: 600; color: var(--text-primary); display: none;">00:00</div>
+            </div>
+
+            <button class="btn btn-primary btn-full" id="predictBtn">
+              <i class="fas fa-play"></i>
+              Analyze Audio
+            </button>
+          </div>
+
+          <!-- Results Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Analysis Results</h2>
+            </div>
+            <div id="emptyState" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+              <div style="font-size: 64px; margin-bottom: 16px; opacity: 0.5;">📊</div>
+              <div>Upload and analyze audio to see results</div>
+            </div>
+
+            <div id="resultsContainer" class="hidden">
+              <!-- Spectrogram -->
+              <div class="spectrogram-container">
+                <div style="font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Audio Spectrogram</div>
+                <canvas id="spectrogramCanvas" class="spectrogram-canvas"></canvas>
+              </div>
+              
+              <!-- Waveform -->
+              <div style="margin-top: 20px; padding: 15px; background: var(--bg-main); border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 10px; color: var(--text-primary);">Waveform</div>
+                <canvas id="waveformCanvasDashboard" style="width: 100%; height: 150px; border-radius: 8px; background: #0f172a;"></canvas>
+              </div>
+
+              <!-- Gauge -->
+              <div class="gauge-container">
+                <div class="gauge-wrapper">
+                  <div class="gauge-arc">
+                    <div class="gauge-fill" id="gaugeFill"></div>
+                    <div class="gauge-needle" id="gaugeNeedle"></div>
+                    <div class="gauge-center"></div>
+                    <div class="gauge-value" id="gaugeValue">0%</div>
+                  </div>
+                </div>
+                <div class="gauge-label">Anomaly Probability</div>
+              </div>
+
+              <!-- Status Badge -->
+              <div id="statusBadge" style="text-align: center;"></div>
+
+              <!-- Info Grid -->
+              <div class="info-grid" id="infoGrid"></div>
+
+              <!-- Progress Bar -->
+              <div class="progress-container">
+                <div class="progress-bar">
+                  <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-labels">
+                  <span>Normal (0%)</span>
+                  <span>Anomalous (100%)</span>
+                </div>
+              </div>
+
+              <!-- Explanation -->
+              <div class="explanation-box" id="explanationBox"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Log Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Activity Log</h2>
+          </div>
+          <div class="activity-log" id="activityLog"></div>
+        </div>
+        </div>
+
+        <!-- Audio Analysis View -->
+        <div id="audioAnalysisView" class="page-view hidden">
+          <div class="main-grid">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Audio Analysis</h2>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Machine Type</label>
+                <select class="form-control" id="machineAnalysis">
+                  <option value="fan">Fan</option>
+                  <option value="pump">Pump</option>
+                  <option value="slider">Slider</option>
+                  <option value="ToyCar">ToyCar</option>
+                  <option value="ToyConveyor">ToyConveyor</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Audio File</label>
+                <div class="upload-area" id="uploadAreaAnalysis">
+                  <div class="upload-icon">📁</div>
+                  <div style="font-weight: 600; margin-bottom: 5px; color: var(--text-primary);">Drop audio file here or click to browse</div>
+                  <div style="font-size: 12px; color: var(--text-secondary);">Supports .wav files</div>
+                  <input type="file" id="audioAnalysis" accept=".wav,audio/wav" style="display: none;">
+                </div>
+                <div id="fileInfoAnalysis" class="file-info"></div>
+              </div>
+              <div class="recording-section">
+                <label class="form-label" style="margin-bottom: 15px;">🎤 Real-Time Recording</label>
+                <button class="record-btn record" id="recordBtnAnalysis">
+                  <span class="record-indicator" id="recordIndicatorAnalysis" style="display: none;"></span>
+                  <span id="recordTextAnalysis">Start Recording</span>
+                </button>
+                <div id="timerAnalysis" style="text-align: center; margin-top: 10px; font-weight: 600; color: var(--text-primary); display: none;">00:00</div>
+              </div>
+              <button class="btn btn-primary btn-full" id="predictBtnAnalysis">
+                <i class="fas fa-play"></i>
+                Analyze Audio
+              </button>
+            </div>
+            <div class="card">
+              <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="card-title">Spectrogram Visualization</h2>
+                <button class="btn btn-primary" id="exportSpectrogramBtn" style="padding: 6px 16px; font-size: 12px;">
+                  <i class="fas fa-download"></i> Export PNG
+                </button>
+              </div>
+              <div class="spectrogram-container" style="min-height: 400px;">
+                <canvas id="spectrogramCanvasAnalysis" class="spectrogram-canvas" style="height: 400px;"></canvas>
+              </div>
+              <div style="margin-top: 20px; padding: 15px; background: var(--bg-main); border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 10px; color: var(--text-primary);">Waveform</div>
+                <canvas id="waveformCanvas" style="width: 100%; height: 150px; border-radius: 8px;"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <!-- XAI: Mel Spectrogram Difference Heatmap -->
+          <div class="card" style="margin-top: 24px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h2 class="card-title">🔍 Explainable AI: Anomaly Heatmap</h2>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <label class="form-label" style="margin: 0; font-size: 12px;">Reconstruction:</label>
+                <select class="form-control" id="reconstructionMethod" style="width: 120px; padding: 6px 10px; font-size: 12px;">
+                  <option value="smooth">Smooth</option>
+                  <option value="mean">Mean</option>
+                  <option value="median">Median</option>
+                </select>
+                <button class="btn btn-primary" id="generateHeatmapBtn" style="padding: 6px 16px; font-size: 12px;">
+                  <i class="fas fa-fire"></i> Generate Heatmap
+                </button>
+                <button class="btn btn-primary" id="exportHeatmapBtn" style="padding: 6px 16px; font-size: 12px; display: none;">
+                  <i class="fas fa-download"></i> Export PNG
+                </button>
+              </div>
+            </div>
+            <div id="xaiContainer" style="display: none;">
+              <div style="padding: 20px; background: var(--bg-main); border-radius: 12px; margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 15px; color: var(--text-primary); display: flex; justify-content: space-between;">
+                  <span>|Original Mel - Reconstructed Mel|</span>
+                  <span id="maxDifferenceLabel" style="font-size: 12px; color: var(--text-secondary);"></span>
+                </div>
+                <canvas id="differenceHeatmapCanvas" style="width: 100%; height: 400px; border-radius: 8px; background: #0f172a;"></canvas>
+              </div>
+              
+              <div class="info-grid" id="anomalyRegionsGrid" style="margin-top: 20px;"></div>
+              
+              <div class="explanation-box" style="margin-top: 20px;">
+                <h4>🎯 How to Interpret This Heatmap</h4>
+                <p>
+                  <strong>Red/Yellow regions</strong> indicate areas where the audio deviates significantly from the expected "normal" pattern. 
+                  These are potential <strong>fault regions</strong> that the AI model identified as anomalous.
+                </p>
+                <p>
+                  The heatmap shows <strong>|Original Mel - Reconstructed Mel|</strong>, where the reconstructed version represents 
+                  what "normal" operation would look like. Higher values (brighter colors) indicate stronger deviations.
+                </p>
+              </div>
+            </div>
+            <div id="xaiPlaceholder" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+              <div style="font-size: 64px; margin-bottom: 16px; opacity: 0.5;">🔍</div>
+              <div>Upload and analyze audio to generate XAI heatmap</div>
+              <div style="margin-top: 10px; font-size: 12px;">Click "Generate Heatmap" after analyzing audio</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports View -->
+        <div id="reportsView" class="page-view hidden">
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h2 class="card-title">Analysis Reports & History</h2>
+              <div style="display: flex; gap: 10px;">
+                <select class="form-control" id="reportMachineFilter" style="width: 150px; padding: 6px 10px; font-size: 12px;">
+                  <option value="all">All Machines</option>
+                  <option value="fan">Fan</option>
+                  <option value="pump">Pump</option>
+                  <option value="slider">Slider</option>
+                  <option value="ToyCar">ToyCar</option>
+                  <option value="ToyConveyor">ToyConveyor</option>
+                </select>
+                <button class="btn btn-primary" id="exportReportBtn" style="padding: 6px 16px; font-size: 12px;">
+                  <i class="fas fa-download"></i> Export Report
+                </button>
+              </div>
+            </div>
+            
+            <!-- Statistics Summary -->
+            <div class="stats-grid" style="margin-bottom: 24px;">
+              <div class="stat-card">
+                <div class="stat-header">
+                  <div>
+                    <div class="stat-value" id="reportTotalTests">0</div>
+                    <div class="stat-label">Total Analyses</div>
+                  </div>
+                  <div class="stat-icon primary">
+                    <i class="fas fa-chart-bar"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-header">
+                  <div>
+                    <div class="stat-value" id="reportAnomalyRate">0%</div>
+                    <div class="stat-label">Anomaly Rate</div>
+                  </div>
+                  <div class="stat-icon danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-header">
+                  <div>
+                    <div class="stat-value" id="reportAvgScore">0.00</div>
+                    <div class="stat-label">Avg Anomaly Score</div>
+                  </div>
+                  <div class="stat-icon warning">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-header">
+                  <div>
+                    <div class="stat-value" id="reportLastAnalysis">-</div>
+                    <div class="stat-label">Last Analysis</div>
+                  </div>
+                  <div class="stat-icon success">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analysis History Table -->
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background: var(--bg-main); border-bottom: 2px solid var(--border);">
+                    <th style="padding: 12px; text-align: left; color: var(--text-primary); font-weight: 600;">Timestamp</th>
+                    <th style="padding: 12px; text-align: left; color: var(--text-primary); font-weight: 600;">Machine</th>
+                    <th style="padding: 12px; text-align: left; color: var(--text-primary); font-weight: 600;">File</th>
+                    <th style="padding: 12px; text-align: left; color: var(--text-primary); font-weight: 600;">Status</th>
+                    <th style="padding: 12px; text-align: left; color: var(--text-primary); font-weight: 600;">Score</th>
+                    <th style="padding: 12px; text-align: left; color: var(--text-primary); font-weight: 600;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="reportsTableBody">
+                  <tr>
+                    <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                      No analysis history yet. Start analyzing audio to see reports here.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Machine Data View -->
+        <div id="machineDataView" class="page-view hidden">
+          <div class="main-grid">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Machine Overview</h2>
+              </div>
+              <div class="info-grid" id="machineOverviewGrid">
+                <div class="info-item">
+                  <div class="info-label">Fan</div>
+                  <div class="info-value" id="fanStats">0 analyses</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Pump</div>
+                  <div class="info-value" id="pumpStats">0 analyses</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Slider</div>
+                  <div class="info-value" id="sliderStats">0 analyses</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">ToyCar</div>
+                  <div class="info-value" id="toycarStats">0 analyses</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">ToyConveyor</div>
+                  <div class="info-value" id="toyconveyorStats">0 analyses</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Machine Details</h2>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Select Machine</label>
+                <select class="form-control" id="machineDataSelect">
+                  <option value="fan">Fan</option>
+                  <option value="pump">Pump</option>
+                  <option value="slider">Slider</option>
+                  <option value="ToyCar">ToyCar</option>
+                  <option value="ToyConveyor">ToyConveyor</option>
+                </select>
+              </div>
+              <div id="machineDetailsContainer" style="margin-top: 20px;">
+                <div class="info-item">
+                  <div class="info-label">Total Analyses</div>
+                  <div class="info-value" id="machineTotalAnalyses">0</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Anomalies Detected</div>
+                  <div class="info-value" id="machineAnomalies">0</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Normal Operations</div>
+                  <div class="info-value" id="machineNormal">0</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Anomaly Rate</div>
+                  <div class="info-value" id="machineAnomalyRate">0%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerts View -->
+        <div id="alertsView" class="page-view hidden">
+          <div class="main-grid">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Alert Configuration</h2>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Alert Threshold</label>
+                <input type="range" class="form-control" id="alertThreshold" min="0" max="100" value="70" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px; color: var(--text-secondary);">
+                  <span>0%</span>
+                  <span id="thresholdValue" style="font-weight: 600; color: var(--primary);">70%</span>
+                  <span>100%</span>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">
+                  Alerts will trigger when anomaly probability exceeds this threshold
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Machine Type</label>
+                <select class="form-control" id="alertMachineType">
+                  <option value="all">All Machines</option>
+                  <option value="fan">Fan</option>
+                  <option value="pump">Pump</option>
+                  <option value="slider">Slider</option>
+                  <option value="ToyCar">ToyCar</option>
+                  <option value="ToyConveyor">ToyConveyor</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+                  <input type="checkbox" id="enableAlerts" checked style="width: 18px; height: 18px;">
+                  Enable Alerts
+                </label>
+              </div>
+              <button class="btn btn-primary btn-full" id="saveAlertConfigBtn">
+                <i class="fas fa-save"></i> Save Configuration
+              </button>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Recent Alerts</h2>
+              </div>
+              <div id="alertsList" style="max-height: 500px; overflow-y: auto;">
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                  <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🔔</div>
+                  <div>No alerts triggered yet</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:8000/predict";
+      const MEL_DIFF_API_URL = "http://localhost:8000/mel-difference";
+      let totalTests = 0, normalCount = 0, anomalyCount = 0;
+      let mediaRecorder = null;
+      let audioChunks = [];
+      let recordingStartTime = null;
+      let timerInterval = null;
+      let audioContext = null;
+      let analyser = null;
+
+      const elements = {
+        machine: document.getElementById("machine"),
+        audio: document.getElementById("audio"),
+        uploadArea: document.getElementById("uploadArea"),
+        fileInfo: document.getElementById("fileInfo"),
+        recordBtn: document.getElementById("recordBtn"),
+        recordText: document.getElementById("recordText"),
+        recordIndicator: document.getElementById("recordIndicator"),
+        timer: document.getElementById("timer"),
+        predictBtn: document.getElementById("predictBtn"),
+        emptyState: document.getElementById("emptyState"),
+        resultsContainer: document.getElementById("resultsContainer"),
+        spectrogramCanvas: document.getElementById("spectrogramCanvas"),
+        waveformCanvasDashboard: document.getElementById("waveformCanvasDashboard"),
+        gaugeFill: document.getElementById("gaugeFill"),
+        gaugeNeedle: document.getElementById("gaugeNeedle"),
+        gaugeValue: document.getElementById("gaugeValue"),
+        statusBadge: document.getElementById("statusBadge"),
+        infoGrid: document.getElementById("infoGrid"),
+        progressFill: document.getElementById("progressFill"),
+        explanationBox: document.getElementById("explanationBox"),
+        activityLog: document.getElementById("activityLog"),
+        totalTestsEl: document.getElementById("totalTests"),
+        normalCountEl: document.getElementById("normalCount"),
+        anomalyCountEl: document.getElementById("anomalyCount"),
+        successRateEl: document.getElementById("successRate")
+      };
+
+      // File upload
+      elements.uploadArea.addEventListener("click", () => elements.audio.click());
+      elements.uploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        elements.uploadArea.style.borderColor = "var(--primary)";
+      });
+      elements.uploadArea.addEventListener("dragleave", () => {
+        elements.uploadArea.style.borderColor = "var(--border)";
+      });
+      elements.uploadArea.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        elements.uploadArea.style.borderColor = "var(--border)";
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          elements.audio.files = files;
+          updateFileInfo(files[0]);
+          await loadAudioForSpectrogram(files[0], elements.spectrogramCanvas, elements.waveformCanvasDashboard);
+        }
+      });
+      elements.audio.addEventListener("change", async (e) => {
+        if (e.target.files.length > 0) {
+          updateFileInfo(e.target.files[0]);
+          await loadAudioForSpectrogram(e.target.files[0], elements.spectrogramCanvas, elements.waveformCanvasDashboard);
+        }
+      });
+
+      function updateFileInfo(file) {
+        elements.fileInfo.innerHTML = `📄 <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
+      }
+
+      async function loadAudioForSpectrogram(file, canvasElement = null, waveformCanvas = null) {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          await drawSpectrogram(arrayBuffer, canvasElement);
+          if (waveformCanvas) {
+            await drawWaveform(arrayBuffer, waveformCanvas);
+          }
+          
+          // Store spectrogram image for report
+          const canvas = canvasElement || elements.spectrogramCanvas;
+          if (canvas && canvas.width > 0) {
+            storedSpectrogramImage = canvas.toDataURL("image/png");
+            currentAnalysisForVisualization = {
+              fileName: file.name,
+              machineType: audioAnalysisElements?.machine?.value || elements?.machine?.value || "unknown"
+            };
+          }
+        } catch (err) {
+          console.error("Error loading audio for spectrogram:", err);
+          addActivityLog("Could not generate spectrogram visualization", "info");
+          // Draw empty canvas on error
+          const canvas = canvasElement || elements.spectrogramCanvas;
+          if (canvas) {
+            const ctx = canvas.getContext("2d");
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width || 800;
+            canvas.height = rect.height || 200;
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+        }
+      }
+
+      // Proper STFT-based spectrogram (time-frequency representation)
+      async function drawSpectrogram(arrayBuffer, canvasElement = null) {
+        const canvas = canvasElement || elements.spectrogramCanvas;
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext("2d");
+        
+        // Set canvas dimensions
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = (rect.width || 800) * dpr;
+        canvas.height = (rect.height || 400) * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const displayWidth = rect.width || 800;
+        const displayHeight = rect.height || 400;
+
+        // Create audio context for analysis
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        try {
+          // Decode audio data
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+          const channelData = audioBuffer.getChannelData(0);
+          const sampleRate = audioBuffer.sampleRate;
+          const duration = audioBuffer.duration;
+          
+          // Fill background
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(0, 0, displayWidth, displayHeight);
+          
+          // STFT parameters
+          const fftSize = 2048;
+          const hopLength = Math.floor(fftSize / 4); // 75% overlap
+          const windowSize = fftSize;
+          
+          // Calculate number of time frames
+          const numFrames = Math.floor((channelData.length - windowSize) / hopLength) + 1;
+          const timePixels = Math.min(numFrames, displayWidth);
+          const freqBins = fftSize / 2;
+          
+          // SIMPLIFIED: Use Web Audio API analyser for fast, non-blocking visualization
+          // This avoids heavy manual FFT computation that blocks the UI
+          
+          const analyser = audioContext.createAnalyser();
+          analyser.fftSize = 2048;
+          analyser.smoothingTimeConstant = 0.8;
+          
+          // Get frequency data
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+          
+          // Use simpler time-domain visualization with frequency bars
+          // This is much faster and won't block
+          const numTimeBars = 150; // Reduced for performance
+          const samplesPerBar = Math.floor(channelData.length / numTimeBars);
+          const barWidth = displayWidth / numTimeBars;
+          
+          // Process audio in chunks to avoid blocking
+          const processChunk = (startBar, endBar) => {
+            for (let i = startBar; i < endBar; i++) {
+              const start = i * samplesPerBar;
+              const end = Math.min(start + samplesPerBar, channelData.length);
+              const chunk = channelData.slice(start, end);
+              
+              // Calculate RMS for amplitude
+              const rms = Math.sqrt(chunk.reduce((sum, val) => sum + val * val, 0) / chunk.length);
+              
+              // Simple frequency analysis - only compute first 64 bins for speed
+              const numFreqBins = 64;
+              const magnitude = new Float32Array(numFreqBins);
+              const chunkSizeActual = chunk.length;
+              
+              for (let k = 0; k < numFreqBins; k++) {
+                let real = 0, imag = 0;
+                const windowSize = Math.min(chunkSizeActual, 256); // Smaller window
+                for (let n = 0; n < windowSize; n++) {
+                  const angle = -2 * Math.PI * k * n / windowSize;
+                  real += chunk[n] * Math.cos(angle);
+                  imag += chunk[n] * Math.sin(angle);
+                }
+                magnitude[k] = Math.sqrt(real * real + imag * imag);
+              }
+              
+              // Draw frequency bars for this time segment
+              const x = (i / numTimeBars) * displayWidth;
+              
+              for (let f = 0; f < numFreqBins; f++) {
+                const mag = magnitude[f];
+                const normalized = Math.min(mag / 0.1, 1);
+                const barHeight = normalized * (displayHeight / numFreqBins);
+                const y = displayHeight - (f / numFreqBins) * displayHeight - barHeight;
+                
+                // Color based on frequency
+                const freqRatio = f / numFreqBins;
+                let r, g, b;
+                if (freqRatio < 0.33) {
+                  r = 99; g = 102; b = 241;
+                } else if (freqRatio < 0.66) {
+                  r = 139; g = 92; b = 246;
+                } else {
+                  r = 239; g = 68; b = 68;
+                }
+                
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${normalized})`;
+                ctx.fillRect(x, y, barWidth, barHeight);
+              }
+            }
+          };
+          
+          // Process in small chunks with delays to keep UI responsive
+          const chunkSize = 10;
+          for (let start = 0; start < numTimeBars; start += chunkSize) {
+            const end = Math.min(start + chunkSize, numTimeBars);
+            processChunk(start, end);
+            // Yield to browser every chunk
+            if (start + chunkSize < numTimeBars) {
+              await new Promise(resolve => setTimeout(resolve, 5));
+            }
+          }
+          
+          // Draw axes labels
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "12px Inter";
+          ctx.fillText("Time (s)", displayWidth / 2 - 40, displayHeight - 5);
+          ctx.save();
+          ctx.translate(15, displayHeight / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText("Frequency (Hz)", -50, 0);
+          ctx.restore();
+          
+        } catch (err) {
+          console.error("Error drawing spectrogram:", err);
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(0, 0, displayWidth, displayHeight);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "14px Inter";
+          ctx.textAlign = "center";
+          ctx.fillText("Spectrogram visualization unavailable", displayWidth / 2, displayHeight / 2);
+        }
+      }
+
+      // Draw waveform visualization
+      async function drawWaveform(arrayBuffer, canvasElement) {
+        if (!canvasElement) return;
+        
+        const canvas = canvasElement;
+        const ctx = canvas.getContext("2d");
+        
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = (rect.width || 800) * dpr;
+        canvas.height = (rect.height || 150) * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const displayWidth = rect.width || 800;
+        const displayHeight = rect.height || 150;
+
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        try {
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+          const channelData = audioBuffer.getChannelData(0);
+          const duration = audioBuffer.duration;
+          
+          // Fill background
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(0, 0, displayWidth, displayHeight);
+          
+          // Draw waveform
+          ctx.strokeStyle = "#6366f1";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          
+          const samplesToShow = Math.min(channelData.length, displayWidth * 2);
+          const step = Math.floor(channelData.length / samplesToShow);
+          
+          for (let i = 0; i < samplesToShow; i++) {
+            const sampleIndex = i * step;
+            const sample = channelData[sampleIndex] || 0;
+            const x = (i / samplesToShow) * displayWidth;
+            const y = (displayHeight / 2) + (sample * displayHeight / 2 * 0.8);
+            
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          
+          ctx.stroke();
+          
+          // Draw center line
+          ctx.strokeStyle = "rgba(148, 163, 184, 0.3)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, displayHeight / 2);
+          ctx.lineTo(displayWidth, displayHeight / 2);
+          ctx.stroke();
+          
+          // Labels
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "11px Inter";
+          ctx.fillText(`0s`, 5, displayHeight - 5);
+          ctx.fillText(`${duration.toFixed(2)}s`, displayWidth - 40, displayHeight - 5);
+          
+        } catch (err) {
+          console.error("Error drawing waveform:", err);
+        }
+      }
+
+      function addActivityLog(message, type = "info") {
+        const logItem = document.createElement("div");
+        logItem.className = "log-item";
+        
+        const iconClass = type === "success" ? "success" : type === "danger" ? "danger" : "info";
+        const icon = type === "success" ? "fa-check-circle" : type === "danger" ? "fa-exclamation-circle" : "fa-info-circle";
+        
+        logItem.innerHTML = `
+          <div class="log-icon ${iconClass}">
+            <i class="fas ${icon}"></i>
+          </div>
+          <div class="log-content">
+            <div class="log-time">${new Date().toLocaleTimeString()}</div>
+            <div class="log-message">${message}</div>
+          </div>
+        `;
+        
+        elements.activityLog.prepend(logItem);
+        if (elements.activityLog.children.length > 20) {
+          elements.activityLog.removeChild(elements.activityLog.lastChild);
+        }
+      }
+
+      function updateTimer() {
+        if (!recordingStartTime) return;
+        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        elements.timer.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+
+      async function startRecording() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+            // Note: MediaRecorder typically produces webm/opus format
+            // The backend should handle this, but we'll name it with .wav extension
+            // The actual format will be detected by the backend
+            const audioFile = new File([audioBlob], `recording_${Date.now()}.wav`, { type: audioBlob.type });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(audioFile);
+            elements.audio.files = dataTransfer.files;
+            updateFileInfo(audioFile);
+            await loadAudioForSpectrogram(audioFile, elements.spectrogramCanvas, elements.waveformCanvasDashboard);
+            addActivityLog(`Recording saved: ${audioFile.name} (${(audioBlob.size / 1024).toFixed(1)} KB)`, "success");
+            stream.getTracks().forEach(track => track.stop());
+          };
+
+          mediaRecorder.start();
+          recordingStartTime = Date.now();
+          timerInterval = setInterval(updateTimer, 100);
+          elements.recordBtn.className = "record-btn recording";
+          elements.recordText.textContent = "Stop Recording";
+          elements.recordIndicator.style.display = "block";
+          elements.timer.style.display = "block";
+          addActivityLog("Recording started...", "info");
+        } catch (err) {
+          addActivityLog(`Error: ${err.message}`, "danger");
+          alert("Failed to access microphone. Please check permissions.");
+        }
+      }
+
+      function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+          recordingStartTime = null;
+          elements.recordBtn.className = "record-btn record";
+          elements.recordText.textContent = "Start Recording";
+          elements.recordIndicator.style.display = "none";
+          elements.timer.style.display = "none";
+          elements.timer.textContent = "00:00";
+          addActivityLog("Recording stopped.", "info");
+        }
+      }
+
+      elements.recordBtn.addEventListener("click", () => {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          stopRecording();
+        } else {
+          startRecording();
+        }
+      });
+
+      // FIXED: Proper anomaly score normalization
+      function normalizeAnomalyScore(score) {
+        // IsolationForest decision_function returns:
+        // - Positive values (e.g., +0.03) = normal (closer to training data)
+        // - Negative values (e.g., -0.11) = anomalous (farther from training data)
+        // We negated it, so anomaly_score = -decision_function
+        // Normal: score = -0.03 (negative) -> should show low percentage
+        // Anomaly: score = +0.11 (positive) -> should show high percentage
+        
+        // Typical range: -0.5 to +0.5
+        const minScore = -0.5;
+        const maxScore = 0.5;
+        // Map to 0-100% where higher = more anomalous
+        const normalized = Math.max(0, Math.min(100, ((score - minScore) / (maxScore - minScore)) * 100));
+        return normalized;
+      }
+
+      async function displayResults(isAnomaly, score, machineType, fileName) {
+        elements.emptyState.classList.add("hidden");
+        elements.resultsContainer.classList.remove("hidden");
+        
+        // Ensure spectrogram is displayed if file exists
+        const file = elements.audio.files[0];
+        if (file && elements.spectrogramCanvas) {
+          // Redraw spectrogram to ensure it's visible
+          await loadAudioForSpectrogram(file);
+        }
+        
+        const anomalyPercent = normalizeAnomalyScore(score);
+        
+        // Update gauge
+        elements.gaugeFill.style.height = `${anomalyPercent}%`;
+        const needleRotation = (anomalyPercent / 100) * 180 - 90; // -90 to +90 degrees
+        elements.gaugeNeedle.style.transform = `translateX(-50%) rotate(${needleRotation}deg)`;
+        elements.gaugeValue.textContent = `${anomalyPercent.toFixed(1)}%`;
+        
+        // Status badge
+        if (isAnomaly) {
+          elements.statusBadge.innerHTML = `
+            <div class="status-badge status-anomaly">
+              <span class="status-dot anomaly"></span>
+              <span>⚠️ ANOMALY DETECTED</span>
+            </div>
+          `;
+        } else {
+          elements.statusBadge.innerHTML = `
+            <div class="status-badge status-normal">
+              <span class="status-dot normal"></span>
+              <span>✅ NORMAL OPERATION</span>
+            </div>
+          `;
+        }
+
+        // Info grid
+        elements.infoGrid.innerHTML = `
+          <div class="info-item">
+            <div class="info-label">Machine Type</div>
+            <div class="info-value">${machineType}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Raw Score</div>
+            <div class="info-value">${score.toFixed(4)}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Anomaly Probability</div>
+            <div class="info-value">${anomalyPercent.toFixed(1)}%</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">File</div>
+            <div class="info-value" style="font-size: 14px; word-break: break-all;">${fileName}</div>
+          </div>
+        `;
+
+        // Progress bar
+        elements.progressFill.style.width = `${anomalyPercent}%`;
+        elements.progressFill.textContent = anomalyPercent >= 50 ? `${anomalyPercent.toFixed(1)}%` : "";
+
+        // Explanation
+        if (isAnomaly) {
+          elements.explanationBox.innerHTML = `
+            <h4>⚠️ Anomaly Detected</h4>
+            <p>The audio signal shows <strong>${anomalyPercent.toFixed(1)}%</strong> probability of being anomalous. 
+            This indicates unusual acoustic patterns that differ significantly from normal operation. 
+            <strong>Recommendation:</strong> Schedule immediate maintenance inspection and monitor the machine closely.</p>
+          `;
+        } else {
+          elements.explanationBox.innerHTML = `
+            <h4>✅ Normal Operation</h4>
+            <p>The audio signal shows <strong>${(100 - anomalyPercent).toFixed(1)}%</strong> probability of normal operation. 
+            Acoustic patterns match expected behavior. <strong>Status:</strong> Machine is operating within normal parameters. 
+            Continue regular monitoring.</p>
+          `;
+        }
+
+        // Update stats
+        totalTests++;
+        if (isAnomaly) anomalyCount++;
+        else normalCount++;
+        const successRate = totalTests > 0 ? ((normalCount / totalTests) * 100).toFixed(0) : 0;
+        
+        elements.totalTestsEl.textContent = totalTests;
+        elements.normalCountEl.textContent = normalCount;
+        elements.anomalyCountEl.textContent = anomalyCount;
+        elements.successRateEl.textContent = `${successRate}%`;
+      }
+
+      elements.predictBtn.addEventListener("click", async () => {
+        const machine = elements.machine.value;
+        const file = elements.audio.files[0];
+
+        if (!file) {
+          alert("Please select a .wav file or record audio first.");
+          return;
+        }
+
+        elements.predictBtn.disabled = true;
+        elements.predictBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        addActivityLog(`Analyzing '${file.name}' for machine '${machine}'...`, "info");
+
+        try {
+          const formData = new FormData();
+          formData.append("machine_type", machine);
+          formData.append("file", file);
+
+          const res = await fetch(API_URL, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`HTTP ${res.status}: ${text}`);
+          }
+
+          const data = await res.json();
+          const isAnomaly = Boolean(data.is_anomaly);
+          const score = Number(data.anomaly_score);
+
+          await displayResults(isAnomaly, score, machine, file.name);
+          // Also update spectrogram and waveform on dashboard
+          await loadAudioForSpectrogram(file, elements.spectrogramCanvas, elements.waveformCanvasDashboard);
+          addActivityLog(
+            `Result: ${isAnomaly ? "ANOMALY" : "NORMAL"} | Score: ${score.toFixed(4)} | Probability: ${normalizeAnomalyScore(score).toFixed(1)}%`,
+            isAnomaly ? "danger" : "success"
+          );
+        } catch (err) {
+          console.error(err);
+          addActivityLog(`Error: ${err.message}`, "danger");
+          alert("Failed to get prediction. Make sure the FastAPI server is running at http://localhost:8000");
+        } finally {
+          elements.predictBtn.disabled = false;
+          elements.predictBtn.innerHTML = '<i class="fas fa-play"></i> Analyze Audio';
+        }
+      });
+
+      // Navigation functionality
+      const pageViews = {
+        dashboard: document.getElementById("dashboardView"),
+        audioAnalysis: document.getElementById("audioAnalysisView"),
+        reports: document.getElementById("reportsView"),
+        machineData: document.getElementById("machineDataView"),
+        alerts: document.getElementById("alertsView")
+      };
+
+      const pageTitles = {
+        dashboard: "Acoustic Anomaly Detection",
+        audioAnalysis: "Audio Analysis & Visualization",
+        reports: "Analysis Reports",
+        machineData: "Machine Data",
+        alerts: "Alerts & Notifications"
+      };
+
+      const breadcrumbs = {
+        dashboard: "Anomaly AI / Dashboard",
+        audioAnalysis: "Anomaly AI / Audio Analysis",
+        reports: "Anomaly AI / Reports",
+        machineData: "Anomaly AI / Machine Data",
+        alerts: "Anomaly AI / Alerts"
+      };
+
+      function switchPage(pageName) {
+        // Hide all pages
+        Object.values(pageViews).forEach(view => {
+          if (view) view.classList.add("hidden");
+        });
+
+        // Show selected page
+        if (pageViews[pageName]) {
+          pageViews[pageName].classList.remove("hidden");
+        }
+
+        // Update active menu item
+        document.querySelectorAll(".menu-item").forEach(item => {
+          item.classList.remove("active");
+          if (item.dataset.page === pageName) {
+            item.classList.add("active");
+          }
+        });
+
+        // Update page title and breadcrumb
+        const titleEl = document.getElementById("pageTitle");
+        const breadcrumbEl = document.getElementById("breadcrumb");
+        if (titleEl) titleEl.textContent = pageTitles[pageName] || "Anomaly AI";
+        if (breadcrumbEl) breadcrumbEl.textContent = breadcrumbs[pageName] || "Anomaly AI";
+      }
+
+      // Add click handlers to menu items
+      document.querySelectorAll(".menu-item[data-page]").forEach(item => {
+        item.addEventListener("click", () => {
+          const pageName = item.dataset.page;
+          switchPage(pageName);
+        });
+      });
+
+      // Wire up Audio Analysis page elements
+      const audioAnalysisElements = {
+        machine: document.getElementById("machineAnalysis"),
+        audio: document.getElementById("audioAnalysis"),
+        uploadArea: document.getElementById("uploadAreaAnalysis"),
+        fileInfo: document.getElementById("fileInfoAnalysis"),
+        recordBtn: document.getElementById("recordBtnAnalysis"),
+        recordText: document.getElementById("recordTextAnalysis"),
+        recordIndicator: document.getElementById("recordIndicatorAnalysis"),
+        timer: document.getElementById("timerAnalysis"),
+        predictBtn: document.getElementById("predictBtnAnalysis"),
+        spectrogramCanvas: document.getElementById("spectrogramCanvasAnalysis"),
+        waveformCanvas: document.getElementById("waveformCanvas")
+      };
+
+      if (audioAnalysisElements.uploadArea) {
+        audioAnalysisElements.uploadArea.addEventListener("click", () => audioAnalysisElements.audio.click());
+      }
+
+      if (audioAnalysisElements.audio) {
+        audioAnalysisElements.audio.addEventListener("change", async (e) => {
+          if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            audioAnalysisElements.fileInfo.innerHTML = `📄 <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
+            await loadAudioForSpectrogram(file, audioAnalysisElements.spectrogramCanvas, audioAnalysisElements.waveformCanvas);
+          }
+        });
+      }
+
+      if (audioAnalysisElements.recordBtn) {
+        audioAnalysisElements.recordBtn.addEventListener("click", () => {
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            stopRecording();
+          } else {
+            startRecordingAnalysis();
+          }
+        });
+      }
+
+      if (audioAnalysisElements.predictBtn) {
+        audioAnalysisElements.predictBtn.addEventListener("click", async () => {
+          const machine = audioAnalysisElements.machine.value;
+          const file = audioAnalysisElements.audio.files[0];
+
+          if (!file) {
+            alert("Please select a .wav file or record audio first.");
+            return;
+          }
+
+          audioAnalysisElements.predictBtn.disabled = true;
+          audioAnalysisElements.predictBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+          try {
+            const formData = new FormData();
+            formData.append("machine_type", machine);
+            formData.append("file", file);
+
+            const res = await fetch(API_URL, {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}`);
+            }
+
+            const data = await res.json();
+            alert(`Analysis Complete!\nResult: ${data.is_anomaly ? "ANOMALY" : "NORMAL"}\nScore: ${data.anomaly_score.toFixed(4)}\nProbability: ${normalizeAnomalyScore(data.anomaly_score).toFixed(1)}%`);
+          } catch (err) {
+            console.error(err);
+            alert("Failed to get prediction. Make sure the FastAPI server is running.");
+          } finally {
+            audioAnalysisElements.predictBtn.disabled = false;
+            audioAnalysisElements.predictBtn.innerHTML = '<i class="fas fa-play"></i> Analyze Audio';
+          }
+        });
+      }
+
+      async function startRecordingAnalysis() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+            const audioFile = new File([audioBlob], `recording_${Date.now()}.wav`, { type: audioBlob.type });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(audioFile);
+            audioAnalysisElements.audio.files = dataTransfer.files;
+            audioAnalysisElements.fileInfo.innerHTML = `📄 <strong>${audioFile.name}</strong> (${(audioBlob.size / 1024).toFixed(1)} KB)`;
+            await loadAudioForSpectrogram(audioFile, audioAnalysisElements.spectrogramCanvas, audioAnalysisElements.waveformCanvas);
+            stream.getTracks().forEach(track => track.stop());
+          };
+
+          mediaRecorder.start();
+          recordingStartTime = Date.now();
+          timerInterval = setInterval(() => {
+            if (!recordingStartTime) return;
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            if (audioAnalysisElements.timer) {
+              audioAnalysisElements.timer.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+          }, 100);
+          audioAnalysisElements.recordBtn.className = "record-btn recording";
+          audioAnalysisElements.recordText.textContent = "Stop Recording";
+          audioAnalysisElements.recordIndicator.style.display = "block";
+          audioAnalysisElements.timer.style.display = "block";
+        } catch (err) {
+          alert("Failed to access microphone. Please check permissions.");
+        }
+      }
+
+      // XAI: Mel Difference Heatmap
+      const xaiElements = {
+        container: document.getElementById("xaiContainer"),
+        placeholder: document.getElementById("xaiPlaceholder"),
+        heatmapCanvas: document.getElementById("differenceHeatmapCanvas"),
+        generateBtn: document.getElementById("generateHeatmapBtn"),
+        reconstructionMethod: document.getElementById("reconstructionMethod"),
+        maxDifferenceLabel: document.getElementById("maxDifferenceLabel"),
+        anomalyRegionsGrid: document.getElementById("anomalyRegionsGrid")
+      };
+
+      async function generateMelDifferenceHeatmap() {
+        const file = audioAnalysisElements.audio.files[0];
+        if (!file) {
+          alert("Please upload or record an audio file first.");
+          return;
+        }
+
+        const machine = audioAnalysisElements.machine.value;
+        const method = xaiElements.reconstructionMethod.value;
+
+        xaiElements.generateBtn.disabled = true;
+        xaiElements.generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+        try {
+          const formData = new FormData();
+          formData.append("machine_type", machine);
+          formData.append("file", file);
+          formData.append("reconstruction_method", method);
+
+          const res = await fetch(MEL_DIFF_API_URL, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+          drawDifferenceHeatmap(data);
+          displayAnomalyRegions(data.anomaly_regions, data.max_difference);
+          
+          xaiElements.placeholder.style.display = "none";
+          xaiElements.container.style.display = "block";
+          
+          // Store heatmap image for report
+          if (xaiElements.heatmapCanvas && xaiElements.heatmapCanvas.width > 0) {
+            storedHeatmapImage = xaiElements.heatmapCanvas.toDataURL("image/png");
+            currentAnalysisForVisualization = {
+              fileName: audioAnalysisElements.audio.files[0]?.name,
+              machineType: audioAnalysisElements.machine.value
+            };
+          }
+          
+        } catch (err) {
+          console.error(err);
+          alert("Failed to generate heatmap. Make sure the FastAPI server is running.");
+        } finally {
+          xaiElements.generateBtn.disabled = false;
+          xaiElements.generateBtn.innerHTML = '<i class="fas fa-fire"></i> Generate Heatmap';
+        }
+      }
+
+      function drawDifferenceHeatmap(data) {
+        const canvas = xaiElements.heatmapCanvas;
+        const ctx = canvas.getContext("2d");
+        
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = (rect.width || 800) * dpr;
+        canvas.height = (rect.height || 400) * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const displayWidth = rect.width || 800;
+        const displayHeight = rect.height || 400;
+
+        const difference = data.difference;
+        const timeAxis = data.time_axis;
+        const freqAxis = data.freq_axis;
+        const maxDiff = data.max_difference;
+
+        // Fill background
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(0, 0, displayWidth, displayHeight);
+
+        // Draw heatmap
+        const numFreqs = difference.length;
+        const numTimes = difference[0].length;
+        const pixelWidth = displayWidth / numTimes;
+        const pixelHeight = displayHeight / numFreqs;
+
+        for (let f = 0; f < numFreqs; f++) {
+          for (let t = 0; t < numTimes; t++) {
+            const diff = difference[f][t];
+            const normalized = Math.min(diff / maxDiff, 1);
+            
+            const x = (t / numTimes) * displayWidth;
+            const y = (f / numFreqs) * displayHeight;
+
+            // Color mapping: dark blue (low) -> yellow -> red (high)
+            let r, g, b;
+            if (normalized < 0.33) {
+              r = 0;
+              g = normalized * 3 * 99;
+              b = 102 + normalized * 3 * 153;
+            } else if (normalized < 0.66) {
+              r = (normalized - 0.33) * 3 * 255;
+              g = 99 + (normalized - 0.33) * 3 * 156;
+              b = 255 - (normalized - 0.33) * 3 * 255;
+            } else {
+              r = 255;
+              g = 255 - (normalized - 0.66) * 3 * 156;
+              b = 0;
+            }
+
+            ctx.fillStyle = `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+            ctx.fillRect(x, y, pixelWidth, pixelHeight);
+          }
+        }
+
+        // Draw axes
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "12px Inter";
+        ctx.fillText("Time (s)", displayWidth / 2 - 30, displayHeight - 5);
+        ctx.save();
+        ctx.translate(15, displayHeight / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText("Mel Frequency Bins", -60, 0);
+        ctx.restore();
+
+        // Update max difference label
+        xaiElements.maxDifferenceLabel.textContent = `Max Difference: ${maxDiff.toFixed(2)} dB`;
+      }
+
+      function displayAnomalyRegions(regions, maxDiff) {
+        if (!regions || regions.length === 0) {
+          xaiElements.anomalyRegionsGrid.innerHTML = `
+            <div class="info-item" style="grid-column: 1 / -1;">
+              <div class="info-label">Anomaly Regions</div>
+              <div class="info-value" style="color: var(--success);">No significant anomaly regions detected</div>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '<div class="info-item" style="grid-column: 1 / -1; margin-bottom: 10px;"><div class="info-label">Detected Anomaly Regions</div></div>';
+        
+        regions.forEach((region, idx) => {
+          const severity = region.max_difference / maxDiff;
+          const severityColor = severity > 0.8 ? "var(--danger)" : severity > 0.5 ? "var(--warning)" : "var(--info)";
+          
+          html += `
+            <div class="info-item">
+              <div class="info-label">Region ${idx + 1}</div>
+              <div class="info-value" style="font-size: 16px;">
+                ${region.start.toFixed(2)}s - ${region.end.toFixed(2)}s
+              </div>
+              <div style="font-size: 11px; color: ${severityColor}; margin-top: 4px;">
+                Severity: ${(severity * 100).toFixed(1)}%
+              </div>
+            </div>
+          `;
+        });
+
+        xaiElements.anomalyRegionsGrid.innerHTML = html;
+      }
+
+      if (xaiElements.generateBtn) {
+        xaiElements.generateBtn.addEventListener("click", generateMelDifferenceHeatmap);
+      }
+
+      // PNG Export Functions
+      function exportCanvasAsPNG(canvas, filename) {
+        if (!canvas) {
+          alert("No canvas to export");
+          return;
+        }
+        const url = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = filename || "export.png";
+        link.href = url;
+        link.click();
+      }
+
+      // Export spectrogram
+      if (document.getElementById("exportSpectrogramBtn")) {
+        document.getElementById("exportSpectrogramBtn").addEventListener("click", () => {
+          const canvas = audioAnalysisElements.spectrogramCanvas;
+          if (canvas && canvas.width > 0) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+            exportCanvasAsPNG(canvas, `spectrogram_${timestamp}.png`);
+            addActivityLog("Spectrogram exported as PNG", "success");
+          } else {
+            alert("No spectrogram to export. Please generate one first.");
+          }
+        });
+      }
+
+      // Export heatmap
+      if (document.getElementById("exportHeatmapBtn")) {
+        document.getElementById("exportHeatmapBtn").addEventListener("click", () => {
+          const canvas = xaiElements.heatmapCanvas;
+          if (canvas && canvas.width > 0) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+            exportCanvasAsPNG(canvas, `heatmap_${timestamp}.png`);
+            addActivityLog("Heatmap exported as PNG", "success");
+          } else {
+            alert("No heatmap to export. Please generate one first.");
+          }
+        });
+      }
+
+      // Show export button when heatmap is generated
+      const originalGenerateHeatmap = generateMelDifferenceHeatmap;
+      generateMelDifferenceHeatmap = async function() {
+        await originalGenerateHeatmap();
+        if (xaiElements.container.style.display !== "none") {
+          document.getElementById("exportHeatmapBtn").style.display = "inline-flex";
+        }
+      };
+
+      // Analysis History Storage
+      let analysisHistory = JSON.parse(localStorage.getItem("analysisHistory") || "[]");
+
+      function saveAnalysisToHistory(machineType, fileName, isAnomaly, score, probability) {
+        const analysis = {
+          id: Date.now(),
+          timestamp: new Date().toISOString(),
+          machineType,
+          fileName,
+          isAnomaly,
+          score,
+          probability
+        };
+        analysisHistory.unshift(analysis);
+        // Keep only last 100 analyses
+        if (analysisHistory.length > 100) {
+          analysisHistory = analysisHistory.slice(0, 100);
+        }
+        localStorage.setItem("analysisHistory", JSON.stringify(analysisHistory));
+        updateReportsPage();
+        updateMachineDataPage();
+      }
+
+      function updateReportsPage() {
+        const filter = document.getElementById("reportMachineFilter")?.value || "all";
+        const filtered = filter === "all" 
+          ? analysisHistory 
+          : analysisHistory.filter(a => a.machineType === filter);
+
+        // Update stats
+        const total = filtered.length;
+        const anomalies = filtered.filter(a => a.isAnomaly).length;
+        const avgScore = filtered.length > 0 
+          ? (filtered.reduce((sum, a) => sum + a.score, 0) / filtered.length).toFixed(2)
+          : "0.00";
+        const lastAnalysis = filtered.length > 0 
+          ? new Date(filtered[0].timestamp).toLocaleString()
+          : "-";
+
+        if (document.getElementById("reportTotalTests")) {
+          document.getElementById("reportTotalTests").textContent = total;
+          document.getElementById("reportAnomalyRate").textContent = total > 0 
+            ? `${((anomalies / total) * 100).toFixed(1)}%` 
+            : "0%";
+          document.getElementById("reportAvgScore").textContent = avgScore;
+          document.getElementById("reportLastAnalysis").textContent = lastAnalysis;
+        }
+
+        // Update table
+        const tbody = document.getElementById("reportsTableBody");
+        if (tbody) {
+          if (filtered.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                  No analysis history yet. Start analyzing audio to see reports here.
+                </td>
+              </tr>
+            `;
+          } else {
+            tbody.innerHTML = filtered.map(analysis => {
+              const date = new Date(analysis.timestamp);
+              const statusBadge = analysis.isAnomaly 
+                ? `<span style="background: rgba(239, 68, 68, 0.15); color: var(--danger); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">ANOMALY</span>`
+                : `<span style="background: rgba(16, 185, 129, 0.15); color: var(--success); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">NORMAL</span>`;
+              
+              return `
+                <tr style="border-bottom: 1px solid var(--border);">
+                  <td style="padding: 12px; color: var(--text-primary);">${date.toLocaleString()}</td>
+                  <td style="padding: 12px; color: var(--text-primary);">${analysis.machineType}</td>
+                  <td style="padding: 12px; color: var(--text-secondary); font-size: 12px;">${analysis.fileName}</td>
+                  <td style="padding: 12px;">${statusBadge}</td>
+                  <td style="padding: 12px; color: var(--text-primary);">${analysis.score.toFixed(4)}</td>
+                  <td style="padding: 12px;">
+                    <button class="btn btn-primary" onclick="viewAnalysisDetails(${analysis.id})" style="padding: 4px 12px; font-size: 11px; margin-right: 5px;">
+                      <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn btn-primary" onclick="exportAnalysisReport(${analysis.id})" style="padding: 4px 12px; font-size: 11px;">
+                      <i class="fas fa-image"></i> Export Image
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join("");
+          }
+        }
+      }
+
+      function updateMachineDataPage() {
+        const machines = ["fan", "pump", "slider", "ToyCar", "ToyConveyor"];
+        machines.forEach(machine => {
+          const machineAnalyses = analysisHistory.filter(a => a.machineType === machine);
+          const total = machineAnalyses.length;
+          const anomalies = machineAnalyses.filter(a => a.isAnomaly).length;
+          const normal = total - anomalies;
+          const rate = total > 0 ? `${((anomalies / total) * 100).toFixed(1)}%` : "0%";
+
+          const elId = machine === "ToyCar" ? "toycarStats" : machine === "ToyConveyor" ? "toyconveyorStats" : `${machine}Stats`;
+          const el = document.getElementById(elId);
+          if (el) el.textContent = `${total} analyses`;
+
+          if (document.getElementById("machineDataSelect")?.value === machine) {
+            if (document.getElementById("machineTotalAnalyses")) {
+              document.getElementById("machineTotalAnalyses").textContent = total;
+              document.getElementById("machineAnomalies").textContent = anomalies;
+              document.getElementById("machineNormal").textContent = normal;
+              document.getElementById("machineAnomalyRate").textContent = rate;
+            }
+          }
+        });
+      }
+
+      // Machine Data page functionality
+      if (document.getElementById("machineDataSelect")) {
+        document.getElementById("machineDataSelect").addEventListener("change", updateMachineDataPage);
+      }
+
+      // Alerts functionality
+      let alertConfig = JSON.parse(localStorage.getItem("alertConfig") || JSON.stringify({
+        threshold: 70,
+        machineType: "all",
+        enabled: true
+      }));
+
+      function checkAlerts(score, probability, machineType, fileName) {
+        if (!alertConfig.enabled) return;
+        if (alertConfig.machineType !== "all" && alertConfig.machineType !== machineType) return;
+        
+        if (probability >= alertConfig.threshold) {
+          const alert = {
+            id: Date.now(),
+            timestamp: new Date().toISOString(),
+            machineType,
+            fileName,
+            score,
+            probability,
+            message: `Anomaly detected! Probability: ${probability.toFixed(1)}%`
+          };
+          
+          let alerts = JSON.parse(localStorage.getItem("alerts") || "[]");
+          alerts.unshift(alert);
+          if (alerts.length > 50) alerts = alerts.slice(0, 50);
+          localStorage.setItem("alerts", JSON.stringify(alerts));
+          
+          updateAlertsPage();
+          
+          // Show browser notification if permission granted
+          if (Notification.permission === "granted") {
+            new Notification("Anomaly Alert", {
+              body: alert.message,
+              icon: "🔔"
+            });
+          }
+        }
+      }
+
+      function updateAlertsPage() {
+        const alerts = JSON.parse(localStorage.getItem("alerts") || "[]");
+        const container = document.getElementById("alertsList");
+        
+        if (container) {
+          if (alerts.length === 0) {
+            container.innerHTML = `
+              <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🔔</div>
+                <div>No alerts triggered yet</div>
+              </div>
+            `;
+          } else {
+            container.innerHTML = alerts.map(alert => {
+              const date = new Date(alert.timestamp);
+              return `
+                <div class="log-item" style="background: rgba(239, 68, 68, 0.1); border-left-color: var(--danger);">
+                  <div class="log-icon danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                  </div>
+                  <div class="log-content">
+                    <div class="log-time">${date.toLocaleString()}</div>
+                    <div class="log-message">
+                      <strong>${alert.machineType}</strong>: ${alert.message}<br>
+                      <small style="color: var(--text-secondary);">File: ${alert.fileName}</small>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("");
+          }
+        }
+
+        // Update config UI
+        if (document.getElementById("alertThreshold")) {
+          document.getElementById("alertThreshold").value = alertConfig.threshold;
+          document.getElementById("thresholdValue").textContent = `${alertConfig.threshold}%`;
+          document.getElementById("alertMachineType").value = alertConfig.machineType;
+          document.getElementById("enableAlerts").checked = alertConfig.enabled;
+        }
+      }
+
+      if (document.getElementById("alertThreshold")) {
+        document.getElementById("alertThreshold").addEventListener("input", (e) => {
+          document.getElementById("thresholdValue").textContent = `${e.target.value}%`;
+        });
+      }
+
+      if (document.getElementById("saveAlertConfigBtn")) {
+        document.getElementById("saveAlertConfigBtn").addEventListener("click", () => {
+          alertConfig = {
+            threshold: parseInt(document.getElementById("alertThreshold").value),
+            machineType: document.getElementById("alertMachineType").value,
+            enabled: document.getElementById("enableAlerts").checked
+          };
+          localStorage.setItem("alertConfig", JSON.stringify(alertConfig));
+          alert("Alert configuration saved!");
+        });
+      }
+
+      // Request notification permission
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+
+      // Update pages when switching
+      const originalSwitchPage = switchPage;
+      switchPage = function(pageName) {
+        originalSwitchPage(pageName);
+        if (pageName === "reports") updateReportsPage();
+        if (pageName === "machineData") updateMachineDataPage();
+        if (pageName === "alerts") updateAlertsPage();
+      };
+
+      // Generate Visual Report - Summary with links to individual reports
+      async function generateVisualReport() {
+        const filter = document.getElementById("reportMachineFilter")?.value || "all";
+        const filtered = filter === "all" 
+          ? analysisHistory 
+          : analysisHistory.filter(a => a.machineType === filter);
+        
+        if (filtered.length === 0) {
+          alert("No analysis data to generate report");
+          return;
+        }
+
+        // Create canvas for summary report
+        const canvas = document.createElement("canvas");
+        canvas.width = 1400;
+        canvas.height = 1000;
+        const ctx = canvas.getContext("2d");
+        
+        // Background
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        let yPos = 50;
+        
+        // Header
+        ctx.fillStyle = "#6366f1";
+        ctx.font = "bold 40px Inter, sans-serif";
+        ctx.fillText("Acoustic Anomaly Detection - Summary Report", 50, yPos);
+        
+        yPos += 60;
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "16px Inter, sans-serif";
+        ctx.fillText(`Generated: ${new Date().toLocaleString()}`, 50, yPos);
+        ctx.fillText(`Filter: ${filter === "all" ? "All Machines" : filter.toUpperCase()}`, 50, yPos + 25);
+        
+        yPos += 70;
+        
+        // Statistics Section
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 28px Inter, sans-serif";
+        ctx.fillText("Summary Statistics", 50, yPos);
+        
+        yPos += 50;
+        const total = filtered.length;
+        const anomalies = filtered.filter(a => a.isAnomaly).length;
+        const normal = total - anomalies;
+        const anomalyRate = total > 0 ? (anomalies / total) * 100 : 0;
+        
+        // Stats boxes
+        const statsY = yPos;
+        drawStatBox(ctx, 50, statsY, "Total Analyses", total, "#6366f1");
+        drawStatBox(ctx, 350, statsY, "Anomalies", anomalies, "#ef4444");
+        drawStatBox(ctx, 650, statsY, "Normal", normal, "#10b981");
+        drawStatBox(ctx, 950, statsY, "Anomaly Rate", `${anomalyRate.toFixed(1)}%`, "#f59e0b");
+        
+        yPos += 150;
+        
+        // Machine Type Distribution Chart
+        if (filter === "all") {
+          ctx.fillStyle = "#f1f5f9";
+          ctx.font = "bold 24px Inter, sans-serif";
+          ctx.fillText("Machine Type Distribution", 50, yPos);
+          
+          yPos += 40;
+          const machines = ["fan", "pump", "slider", "ToyCar", "ToyConveyor"];
+          const machineCounts = machines.map(m => filtered.filter(a => a.machineType === m).length);
+          const maxCount = Math.max(...machineCounts, 1);
+          
+          const barWidth = 200;
+          const barHeight = 250;
+          const spacing = 30;
+          const startX = 50;
+          
+          machines.forEach((machine, idx) => {
+            const count = machineCounts[idx];
+            const height = (count / maxCount) * barHeight;
+            const x = startX + idx * (barWidth + spacing);
+            const y = yPos + barHeight - height;
+            
+            // Bar
+            ctx.fillStyle = idx % 2 === 0 ? "#6366f1" : "#8b5cf6";
+            ctx.fillRect(x, y, barWidth, height);
+            
+            // Label
+            ctx.fillStyle = "#f1f5f9";
+            ctx.font = "14px Inter, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(machine.toUpperCase(), x + barWidth / 2, yPos + barHeight + 20);
+            ctx.fillText(count.toString(), x + barWidth / 2, yPos + barHeight + 40);
+            ctx.textAlign = "left";
+          });
+          
+          yPos += barHeight + 80;
+        }
+        
+        // Analysis List
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 24px Inter, sans-serif";
+        ctx.fillText("Analysis History", 50, yPos);
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "14px Inter, sans-serif";
+        ctx.fillText("(Use 'Export Image' button for each analysis to get spectrogram and heatmap)", 50, yPos + 25);
+        
+        yPos += 60;
+        
+        // Table header
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(50, yPos, 1300, 40);
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 14px Inter, sans-serif";
+        ctx.fillText("Timestamp", 60, yPos + 25);
+        ctx.fillText("Machine", 250, yPos + 25);
+        ctx.fillText("File", 400, yPos + 25);
+        ctx.fillText("Status", 800, yPos + 25);
+        ctx.fillText("Actions", 1000, yPos + 25);
+        
+        yPos += 50;
+        
+        // Table rows (show last 8)
+        const recentAnalyses = filtered.slice(0, 8);
+        recentAnalyses.forEach((analysis, idx) => {
+          const rowY = yPos + idx * 35;
+          const bgColor = idx % 2 === 0 ? "#1e293b" : "#0f172a";
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(50, rowY - 25, 1300, 35);
+          
+          const date = new Date(analysis.timestamp);
+          ctx.fillStyle = "#f1f5f9";
+          ctx.font = "12px Inter, sans-serif";
+          ctx.fillText(date.toLocaleString(), 60, rowY);
+          ctx.fillText(analysis.machineType.toUpperCase(), 250, rowY);
+          ctx.fillText(analysis.fileName.length > 40 ? analysis.fileName.substring(0, 40) + "..." : analysis.fileName, 400, rowY);
+          
+          // Status badge
+          const statusColor = analysis.isAnomaly ? "#ef4444" : "#10b981";
+          const statusText = analysis.isAnomaly ? "ANOMALY" : "NORMAL";
+          ctx.fillStyle = statusColor;
+          ctx.fillRect(800, rowY - 15, 100, 20);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 10px Inter, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(statusText, 850, rowY - 2);
+          ctx.textAlign = "left";
+          
+          // Action hint
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "11px Inter, sans-serif";
+          ctx.fillText("Export Image →", 1000, rowY);
+        });
+        
+        yPos += recentAnalyses.length * 35 + 50;
+        
+        // Footer note
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "14px Inter, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Note: Individual analysis reports with spectrogram and heatmap can be exported using 'Export Image' button", canvas.width / 2, yPos);
+        yPos += 30;
+        ctx.fillText("Generated by Acoustic Anomaly Detection System", canvas.width / 2, yPos);
+        
+        // Export as PNG
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = `summary_report_${filter}_${new Date().toISOString().slice(0, 10)}.png`;
+        link.href = dataUrl;
+        link.click();
+        
+        // Also save JSON
+        const report = {
+          generated: new Date().toISOString(),
+          filter,
+          total: filtered.length,
+          anomalies: filtered.filter(a => a.isAnomaly).length,
+          analyses: filtered
+        };
+        
+        const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const jsonLink = document.createElement("a");
+        jsonLink.download = `report_${filter}_${new Date().toISOString().slice(0, 10)}.json`;
+        jsonLink.href = url;
+        jsonLink.click();
+        URL.revokeObjectURL(url);
+        
+        addActivityLog("Summary report exported. Use 'Export Image' for individual analysis reports with visualizations.", "success");
+      }
+      
+      function drawStatBox(ctx, x, y, label, value, color) {
+        const boxWidth = 250;
+        const boxHeight = 100;
+        
+        // Box background
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(x, y, boxWidth, boxHeight);
+        
+        // Border
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, boxWidth, boxHeight);
+        
+        // Label
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "14px Inter, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(label, x + boxWidth / 2, y + 25);
+        
+        // Value
+        ctx.fillStyle = color;
+        ctx.font = "bold 32px Inter, sans-serif";
+        ctx.fillText(value.toString(), x + boxWidth / 2, y + 70);
+        ctx.textAlign = "left";
+      }
+
+      // Store canvas images for reports
+      let storedSpectrogramImage = null;
+      let storedHeatmapImage = null;
+      let currentAnalysisForVisualization = null;
+
+      // Generate Individual Analysis Report Image with Spectrogram and Heatmap
+      async function exportAnalysisReport(analysisId) {
+        const analysis = analysisHistory.find(a => a.id === analysisId);
+        if (!analysis) {
+          alert("Analysis not found");
+          return;
+        }
+
+        // Check if we have stored images or current canvas
+        let spectrogramImg = null;
+        let heatmapImg = null;
+        
+        // Check if stored images match this analysis
+        if (storedSpectrogramImage && currentAnalysisForVisualization && 
+            currentAnalysisForVisualization.fileName === analysis.fileName) {
+          spectrogramImg = storedSpectrogramImage;
+        } else {
+          // Try to get current spectrogram canvas
+          const spectrogramCanvas = audioAnalysisElements.spectrogramCanvas;
+          if (spectrogramCanvas && spectrogramCanvas.width > 0) {
+            spectrogramImg = spectrogramCanvas.toDataURL("image/png");
+          }
+        }
+        
+        // Check if stored heatmap matches this analysis
+        if (storedHeatmapImage && currentAnalysisForVisualization && 
+            currentAnalysisForVisualization.fileName === analysis.fileName) {
+          heatmapImg = storedHeatmapImage;
+        } else {
+          // Try to get current heatmap canvas
+          const heatmapCanvas = xaiElements.heatmapCanvas;
+          if (heatmapCanvas && heatmapCanvas.width > 0 && xaiElements.container.style.display !== "none") {
+            heatmapImg = heatmapCanvas.toDataURL("image/png");
+          }
+        }
+
+        // If we don't have the visualizations, prompt user
+        if (!spectrogramImg || !heatmapImg) {
+          const proceed = confirm(
+            "Spectrogram or heatmap not found for this analysis.\n\n" +
+            "Would you like to:\n" +
+            "1. Generate report with available data\n" +
+            "2. Go to Audio Analysis page to generate visualizations first?\n\n" +
+            "Click OK to generate report anyway, or Cancel to go generate visualizations."
+          );
+          
+          if (!proceed) {
+            // Switch to Audio Analysis page
+            switchPage("audioAnalysis");
+            alert("Please upload the audio file and generate spectrogram and heatmap, then try exporting again.");
+            return;
+          }
+        }
+
+        // Create canvas for report
+        const canvas = document.createElement("canvas");
+        canvas.width = 1400;
+        canvas.height = 2000;
+        const ctx = canvas.getContext("2d");
+        
+        // Background
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        let yPos = 50;
+        
+        // Header
+        ctx.fillStyle = "#6366f1";
+        ctx.font = "bold 40px Inter, sans-serif";
+        ctx.fillText("Acoustic Anomaly Detection Report", 50, yPos);
+        
+        yPos += 60;
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "16px Inter, sans-serif";
+        ctx.fillText(`Generated: ${new Date().toLocaleString()}`, 50, yPos);
+        ctx.fillText(`Analysis Date: ${new Date(analysis.timestamp).toLocaleString()}`, 50, yPos + 25);
+        
+        yPos += 70;
+        
+        // Machine Type Section
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 28px Inter, sans-serif";
+        ctx.fillText("Machine Type", 50, yPos);
+        
+        yPos += 40;
+        ctx.fillStyle = "#6366f1";
+        ctx.font = "bold 56px Inter, sans-serif";
+        ctx.fillText(analysis.machineType.toUpperCase(), 50, yPos);
+        
+        yPos += 80;
+        
+        // File Information
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 24px Inter, sans-serif";
+        ctx.fillText("Audio File", 50, yPos);
+        
+        yPos += 35;
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "18px Inter, sans-serif";
+        ctx.fillText(analysis.fileName, 50, yPos);
+        
+        yPos += 60;
+        
+        // Spectrogram Section
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 28px Inter, sans-serif";
+        ctx.fillText("Audio Spectrogram", 50, yPos);
+        
+        yPos += 40;
+        
+        if (spectrogramImg) {
+          // Draw spectrogram image
+          const img = new Image();
+          await new Promise((resolve) => {
+            img.onload = () => {
+              // Scale to fit width (1300px) while maintaining aspect ratio
+              const maxWidth = 1300;
+              const scale = Math.min(maxWidth / img.width, 1);
+              const scaledWidth = img.width * scale;
+              const scaledHeight = img.height * scale;
+              
+              // Draw white background for image
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(50, yPos, scaledWidth + 20, scaledHeight + 20);
+              
+              // Draw image
+              ctx.drawImage(img, 60, yPos + 10, scaledWidth, scaledHeight);
+              
+              yPos += scaledHeight + 50;
+              resolve();
+            };
+            img.src = spectrogramImg;
+          });
+        } else {
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "16px Inter, sans-serif";
+          ctx.fillText("Spectrogram not available for this analysis", 50, yPos);
+          yPos += 50;
+        }
+        
+        // Heatmap Section
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 28px Inter, sans-serif";
+        ctx.fillText("Mel Spectrogram Difference Heatmap (XAI)", 50, yPos);
+        
+        yPos += 40;
+        
+        if (heatmapImg) {
+          // Draw heatmap image
+          const img = new Image();
+          await new Promise((resolve) => {
+            img.onload = () => {
+              // Scale to fit width (1300px) while maintaining aspect ratio
+              const maxWidth = 1300;
+              const scale = Math.min(maxWidth / img.width, 1);
+              const scaledWidth = img.width * scale;
+              const scaledHeight = img.height * scale;
+              
+              // Draw white background for image
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(50, yPos, scaledWidth + 20, scaledHeight + 20);
+              
+              // Draw image
+              ctx.drawImage(img, 60, yPos + 10, scaledWidth, scaledHeight);
+              
+              yPos += scaledHeight + 50;
+              resolve();
+            };
+            img.src = heatmapImg;
+          });
+        } else {
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "16px Inter, sans-serif";
+          ctx.fillText("Heatmap not available for this analysis", 50, yPos);
+          ctx.fillText("Please generate heatmap in Audio Analysis page", 50, yPos + 25);
+          yPos += 60;
+        }
+        
+        // Analysis Result (simple text, not visualization)
+        yPos += 30;
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 24px Inter, sans-serif";
+        ctx.fillText("Analysis Result", 50, yPos);
+        
+        yPos += 40;
+        const statusColor = analysis.isAnomaly ? "#ef4444" : "#10b981";
+        const statusText = analysis.isAnomaly ? "ANOMALY DETECTED" : "NORMAL OPERATION";
+        
+        // Simple status box
+        ctx.fillStyle = statusColor;
+        ctx.fillRect(50, yPos, 400, 50);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 24px Inter, sans-serif";
+        ctx.fillText(statusText, 60, yPos + 32);
+        
+        yPos += 80;
+        
+        // Footer
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "12px Inter, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Acoustic Anomaly Detection System - Visual Analysis Report", canvas.width / 2, yPos);
+        
+        // Export
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        const safeFileName = analysis.fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        link.download = `report_${analysis.machineType}_${safeFileName}_${analysis.id}.png`;
+        link.href = dataUrl;
+        link.click();
+        
+        addActivityLog(`Visual report exported: ${analysis.machineType} with spectrogram and heatmap`, "success");
+      }
+      
+      // Make function globally accessible
+      window.exportAnalysisReport = exportAnalysisReport;
+      window.viewAnalysisDetails = function(id) {
+        const analysis = analysisHistory.find(a => a.id === id);
+        if (analysis) {
+          alert(`Analysis Details:\n\nMachine: ${analysis.machineType}\nFile: ${analysis.fileName}\nStatus: ${analysis.isAnomaly ? "ANOMALY" : "NORMAL"}\nScore: ${analysis.score.toFixed(4)}\nProbability: ${analysis.probability.toFixed(1)}%`);
+        }
+      };
+
+      // Export report
+      if (document.getElementById("exportReportBtn")) {
+        document.getElementById("exportReportBtn").addEventListener("click", generateVisualReport);
+      }
+
+      if (document.getElementById("reportMachineFilter")) {
+        document.getElementById("reportMachineFilter").addEventListener("change", updateReportsPage);
+      }
+
+      // Update displayResults to save to history
+      const originalDisplayResults = displayResults;
+      displayResults = async function(isAnomaly, score, machineType, fileName) {
+        await originalDisplayResults(isAnomaly, score, machineType, fileName);
+        const probability = normalizeAnomalyScore(score);
+        saveAnalysisToHistory(machineType, fileName, isAnomaly, score, probability);
+        checkAlerts(score, probability, machineType, fileName);
+      };
+
+      addActivityLog("System ready. Upload an audio file to begin analysis.", "info");
+    </script>
+  </body>
+</html>
